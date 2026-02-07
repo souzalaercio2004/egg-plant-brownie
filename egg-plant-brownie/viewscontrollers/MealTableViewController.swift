@@ -44,8 +44,16 @@ class MealTableViewController: UITableViewController, AddMealDelegate {
     }
     
     
+    func show(meal: Meal, handler: ((UIAlertAction) -> Void)? = nil) {
+        let detais = UIAlertController(title: meal.name, message: meal.details(), preferredStyle: .alert)
+        let remove = UIAlertAction(title: "Remove", style: .destructive, handler: handler)
+        let ok = UIAlertAction(title: "OK", style: .cancel, handler: nil)
+        detais.addAction(remove)
+        detais.addAction(ok)
+        present(detais, animated: true, completion: nil)
+    }
+    
     func showDetails(reconizer: UILongPressGestureRecognizer){
-        
         if reconizer.state == UILongPressGestureRecognizer.State.began{
             let cell = reconizer.view as! UITableViewCell
             let indexPath = tableView.indexPath(for: cell)
@@ -53,20 +61,18 @@ class MealTableViewController: UITableViewController, AddMealDelegate {
                 return
             }
             let row = indexPath!.row
-            
             let meal = meals[row]
             
-            let details = UIAlertController(title: meal.name, message: meal.details(), preferredStyle: .alert)
-            
-            let ok = UIAlertAction(title: "OK", style: .cancel, handler: nil)
-            details.addAction(ok)
-            
-            present(details, animated: true, completion: nil)
-            
-            RemoveMealController(controller: self).show(meal: meal, handler: {action in self.meals.remove(at: row); self.tableView.reloadData()})
+           
+            RemoveMealController(controller: self).show(meal: meal, handler: {
+                action in
+                self.meals.remove(at: row)
+                self.tableView.reloadData()})
         }
         
     }
+    
+   
 }
 
  
