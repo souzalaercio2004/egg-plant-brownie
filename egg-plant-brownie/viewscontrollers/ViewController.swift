@@ -29,12 +29,14 @@ class ViewController: UIViewController,  UITableViewDataSource, UITableViewDeleg
     
     @IBOutlet var tableView: UITableView!
     
+    
     func addNew(item: Item){
         items.append(item)
-        if tableView == nil{
-            return
+        if let table = tableView{
+            table.reloadData()
+        } else {
+            Alert(controller: self).show(message: "Unespected error, but the item was added.")
         }
-        tableView!.reloadData()
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -47,7 +49,7 @@ class ViewController: UIViewController,  UITableViewDataSource, UITableViewDeleg
         
         let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
         cell.textLabel?.text = item.name
-       
+        
         return cell
     }
     
@@ -67,7 +69,6 @@ class ViewController: UIViewController,  UITableViewDataSource, UITableViewDeleg
             }
         }
     }
-
     
     override func viewDidLoad() {
         let newItemButton = UIBarButtonItem(title: "new item", style: UIBarButtonItem.Style.plain, target: self, action: #selector(self.showNewItem))
@@ -77,38 +78,43 @@ class ViewController: UIViewController,  UITableViewDataSource, UITableViewDeleg
         navigationItem.rightBarButtonItem = newItemButton
     }
     
+    @IBAction func add(_ sender: UIButton) {
+        if let meal = getMealFromForm() {
+            if let meals = delegate{
+                meals.add(meal: meal)
+                if let navigation = self.navigationController {
+                    navigation.popViewController(animated: true)
+                }else {
+                    Alert(controller: self).show(message: "Unexpected error, but the view was added.")
+                }
+                return
+            }
+        }
+        Alert(controller: self).show()
+    }
+    
     @IBAction func showNewItem() {
         let newItem = NewItemViewController(delegate: self)
-       
+        
         if let navigation = navigationController {
             navigation.pushViewController(newItem, animated: true)
         }
     }
     
-    @IBAction func add(_ sender: UIButton) {
+    func getMealFromForm() -> Meal? {
         if (nameField.text == nil  || happinessField.text == nil) {
-            print ("Error: invalid values")
-            return
-        }else{
-            
-            let name = nameField.text!
-            guard let happinessText = happinessField.text, let happiness = Int(happinessText) else {
-                print("Error: invalid happiness value")
-                return
-            }
-            
-            let meal =  Meal(name: name, happiness: happiness)
-            meal.items = selected
-            
-            print("eaten: \(String(describing: meal.name)), \(meal.happiness), \(meal.items)")
-            
-            if delegate == nil {
-                return
-            }
-            delegate?.add(meal: meal)
+            return nil
         }
-        if let navigation = self.navigationController {
-            navigation.popViewController(animated: true)
+        let name = nameField.text!
+        let happiness = Int(happinessField.text!)
+        if happiness == nil {
+            return nil
         }
+        
+        let meal =  Meal(name: name, happiness: happiness!)
+        meal.items = selected
+        print("eaten: \(meal.name) \(meal.happiness) \(meal.items) ")
+        return meal
     }
 }
+

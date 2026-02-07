@@ -52,14 +52,13 @@
                     <state key="normal" title="Button"/>
                     <buttonConfiguration key="configuration" style="plain" title="add"/>
                     <connections>
-                        <action selector="addNewItem" destination="-1" eventType="touchUpInside" id="Zmv-9q-wHO"/>
-                        <action selector="showNewItem" destination="-2" eventType="touchUpInside" id="bPd-fo-jqP"/>
+                        <action selector="addNewItem:" destination="-1" eventType="touchUpInside" id="BOa-bN-frN"/>
                     </connections>
                 </button>
             </subviews>
             <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
             <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-            <point key="canvasLocation" x="101.5267175572519" y="68.309859154929583"/>
+            <point key="canvasLocation" x="-211" y="127"/>
         </view>
     </objects>
     <resources>
