@@ -8,10 +8,7 @@
 import UIKit
 
 class MealTableViewController: UITableViewController, AddMealDelegate {
-    
-    var meals = [Meal(name: "Eggplant Brownie", happiness: 5),
-                 Meal(name: "Zuchinni Muffin", happiness: 3)]
-    var selectedMeal: Meal?
+    var meals = Array<Meal>()
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return meals.count
@@ -25,8 +22,8 @@ class MealTableViewController: UITableViewController, AddMealDelegate {
         let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
         cell.textLabel?.text = meal.name
         
-        let longPress = UILongPressGestureRecognizer(target: self, action: Selector(("showDetails:")))
-        longPress.minimumPressDuration = 1.0
+        let longPress = UILongPressGestureRecognizer(target: self, action: Selector(("showDetails")))
+        longPress.minimumPressDuration = 4.0
         cell.addGestureRecognizer(longPress)
         return cell
     }
@@ -38,11 +35,25 @@ class MealTableViewController: UITableViewController, AddMealDelegate {
         }
         
     }
+    private let archiveURL: URL = {
+          let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+          return documents.appendingPathComponent("meals.archive")
+      }()
+    
+    func getUserDir()-> URL {
+        let userDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return userDir[0]
+    }
+    
     func add(meal: Meal){
         meals.append(meal)
+        Dao().saveMeals(meals: meals)
         tableView.reloadData()
     }
     
+    override func viewDidLoad() {
+        meals = Dao().loadMeals()
+    }
     
     func show(meal: Meal, handler: ((UIAlertAction) -> Void)? = nil) {
         let detais = UIAlertController(title: meal.name, message: meal.details(), preferredStyle: .alert)
@@ -63,16 +74,13 @@ class MealTableViewController: UITableViewController, AddMealDelegate {
             let row = indexPath!.row
             let meal = meals[row]
             
-           
             RemoveMealController(controller: self).show(meal: meal, handler: {
                 action in
                 self.meals.remove(at: row)
                 self.tableView.reloadData()})
         }
-        
     }
     
-   
 }
 
  

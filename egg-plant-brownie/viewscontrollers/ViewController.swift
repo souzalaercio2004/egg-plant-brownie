@@ -14,12 +14,7 @@ protocol AddMealDelegate {
 class ViewController: UIViewController,  UITableViewDataSource, UITableViewDelegate , AddAnItemDelegate{
     
     
-    var items = [
-        Item(name: "Eggplant Brownie", calories: 10),
-        Item(name: "Zucchini Mufin", calories: 10),
-        Item(name: "Coconut oil", calories: 500),
-        Item(name: "Chocolate Frosting", calories: 1000),
-        Item(name: "Chocolate Chip", calories: 100)]
+    var items = Array<Item>()
     
     @IBOutlet weak var nameField: UITextField!
     
@@ -32,10 +27,9 @@ class ViewController: UIViewController,  UITableViewDataSource, UITableViewDeleg
     
     func addNew(item: Item){
         items.append(item)
-        if let table = tableView{
+        Dao().saveItems(items: items)
+        if let table = tableView {
             table.reloadData()
-        } else {
-            Alert(controller: self).show(message: "Unespected error, but the item was added.")
         }
     }
     
@@ -70,13 +64,37 @@ class ViewController: UIViewController,  UITableViewDataSource, UITableViewDeleg
         }
     }
     
+    var meals = Array<Meal>()
+    
     override func viewDidLoad() {
-        let newItemButton = UIBarButtonItem(title: "new item", style: UIBarButtonItem.Style.plain, target: self, action: #selector(self.showNewItem))
         
+        // Obtém o diretório de documentos (Swift moderno, mas mantendo NSKeyedArchiver)
+        _ = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
+        let dir = getUserDir()
+        let archivePath = (dir as NSString).appendingPathComponent("egg-plant-brownie-meals")
+        
+        do {
+            let data = try Data(contentsOf: URL(fileURLWithPath: archivePath))
+            // If Meal is a class that conforms to NSSecureCoding:
+            if let loaded = try NSKeyedUnarchiver.unarchivedObject(ofClasses: [NSArray.self, Meal.self], from: data) as? [Meal] {
+                self.meals = loaded
+            } else {
+                self.meals = []
+            }
+        } catch {
+            // Handle file not found or decoding errors gracefully
+            self.meals = []
+            // Optionally log: print("Failed to load meals: \(error)")
+        }
+        
+        let newItemButton = UIBarButtonItem(title: "new item", style: UIBarButtonItem.Style.plain, target: self, action: #selector(self.showNewItem))
         newItemButton.tintColor = UIColor.blue
         
         navigationItem.rightBarButtonItem = newItemButton
+        items = Dao().loadItems()
     }
+    
+    
     
     @IBAction func add(_ sender: UIButton) {
         if let meal = getMealFromForm() {
@@ -91,8 +109,14 @@ class ViewController: UIViewController,  UITableViewDataSource, UITableViewDeleg
             }
         }
         Alert(controller: self).show()
+        
     }
     
+    func getUserDir() -> String {
+        let userDir = NSSearchPathForDirectoriesInDomains(FileManager.SearchPathDirectory.documentDirectory, FileManager.SearchPathDomainMask.userDomainMask, true)
+        return userDir[0] as String
+    }
+
     @IBAction func showNewItem() {
         let newItem = NewItemViewController(delegate: self)
         
@@ -101,6 +125,7 @@ class ViewController: UIViewController,  UITableViewDataSource, UITableViewDeleg
         } else {
             Alert(controller: self).show()
         }
+        tableView.reloadData()
     }
     
     func getMealFromForm() -> Meal? {
